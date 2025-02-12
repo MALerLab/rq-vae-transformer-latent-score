@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 easydict = "==1.9"
 ipdb = "==0.13.3"
-lmdb = "==1.0.0"
 pyflakes = "==2.2.0"
 pyyaml = "==5.3.1"
 tqdm = "==4.46.0"
@@ -22,6 +21,9 @@ clip = {editable = true, git = "https://github.com/openai/CLIP.git"}
 numpy = "==1.23.5"
 protobuf = "==3.20.3"
 omegaconf = "*"
+lmdb = "*"
+wandb = "*"
+tensorboard = "*"
 
 [dev-packages]
 
