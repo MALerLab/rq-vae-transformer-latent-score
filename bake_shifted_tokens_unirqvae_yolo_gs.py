@@ -16,7 +16,7 @@ from rqvae.models import create_model
 
 
 if __name__ == "__main__":
-  brightness_threshold = True
+  brightness_threshold = False
 
   model_name = "unirqvae_f16_c1024_k4"
   config_path = list((Path("logs")/ model_name).rglob("config.yaml"))[0]
@@ -32,7 +32,7 @@ if __name__ == "__main__":
   
   torch.set_grad_enabled(False)
   
-  image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo_3/").rglob("*/images/crop_resized/*.png"))
+  image_path_list = list(Path("/home/sake/userdata/olimpic_dataset_yolo/").rglob("*.jpg"))
   # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
   # filtered_pathlist = []
   # for p in image_path_list:
@@ -50,10 +50,11 @@ if __name__ == "__main__":
   log_path = Path(f"error_{timestamp}.log")
   
   for image_path in tqdm(image_path_list):
-    save_path = (image_path.parent.parent.parent / "image_tokens" / (model_name) / "yolo_shifted" / image_path.stem).with_suffix(".pt")
+    save_path = (image_path.parent / "image_tokens" / (model_name) / "yolo_shifted" / image_path.stem).with_suffix(".pt")
     save_path.parent.mkdir(parents=True, exist_ok=True)
     
     if save_path.exists():
+      print(f"Skipping {image_path} because {save_path} already exists")
       continue
     
     print("Encoding : ", image_path)
@@ -61,8 +62,10 @@ if __name__ == "__main__":
 
     # Filter
     width, height = image.size
-    if height < 70 or height > 390 or height > width:
-      print(f"Skipping {image_path} due to invalid dimensions: {width}x{height}")
+    # if height < 70 or height > 390 or height > width:
+    #   print(f"Skipping {image_path} due to invalid dimensions: {width}x{height}")
+    #   continue
+    if width < 30:
       continue
     
     if brightness_threshold:
@@ -104,6 +107,7 @@ if __name__ == "__main__":
           # Log error with timestamp
           with open(log_path, "a") as f:
             f.write(f"Error processing {image_path}:\n{str(e)}\n")
+            continue
           
       x_y_shifted_tokens.append(out.squeeze(0))
     x_y_shifted_tokens = torch.stack(x_y_shifted_tokens)
