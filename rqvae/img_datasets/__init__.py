@@ -237,7 +237,7 @@ def create_dataset(config, is_eval=False, logger=None):
         root = root if root else 'data/LSDSQ_flattened_240_gray'
         dataset_trn = ScoreDataset(root, split='train', transform=transforms_trn)
         dataset_val = ScoreDataset(root, split='val', transform=transforms_val)
-    elif config.dataset.type in ['LSD_360anchored_gray', 'LSD_360anchored_gray_debug']:
+    elif config.dataset.type in ['LSD_360anchored_gray', 'LSD_360anchored_gray_debug', 'LSD_360anchored_gray_yolo']:
         root = root if root else f'data/{config.dataset.type}'
         assert isinstance(config.experiment.batch_size, DictConfig)
         dataset_trn = MultiHeightScoreDataset(root, split='train', transform=transforms_trn)
