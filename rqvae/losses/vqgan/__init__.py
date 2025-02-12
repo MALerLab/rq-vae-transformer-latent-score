@@ -18,6 +18,7 @@ from rqvae.optimizer.optimizer import create_resnet_optimizer
 from .discriminator import NLayerDiscriminator, weights_init
 from .gan_loss import hinge_d_loss, vanilla_d_loss, vanilla_g_loss
 from .lpips import LPIPS
+from .zeus_lpips import ZeusLPIPS
 
 
 def create_vqgan_loss(loss_config):
