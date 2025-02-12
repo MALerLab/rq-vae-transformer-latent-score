@@ -1,0 +1,74 @@
+seed: 42
+
+dataset:
+  type: LSD_360anchored_gray_yolo
+  transforms:
+    type: lsd_randomcrop_64 # Dummy. Refer to rqvae.img_datasets.MultiHeightScoreDataset
+
+arch:
+  type: rq-vae
+  code_hier: 1
+  hparams:
+    bottleneck_type: rq
+    embed_dim: 256 # quant dim
+    n_embed: 1024 # n_codebook
+    latent_shape: [ 4, 4, 256 ]  # Dummy; for 64*64 crop(64/16=4), there are 128, 256, 352 crops also
+    code_shape: [ 4, 4, 4 ] # Dummy; for 64*64 crop(64/16=4), there are 128, 256, 352 crops also
+    shared_codebook: False
+    decay: 0.99
+    restart_unused_codes: true
+
+    loss_type: mse
+    latent_loss_weight: 0.25
+  ddconfig:
+    double_z: false
+    z_channels: 256 # enc out channels
+    resolution: 256 # 인풋 이미지 한쪽(가로/세로)길이?
+    in_channels: 1 # enc in ch
+    out_ch: 1 # dec out ch
+    ch: 128 # enc/dec latent ch
+    ch_mult: [ 1, 1, 2, 2, 4]  # 레이어 수(압축률: 2^(len(ch_mult)-1) 2^4=16 -> 코드 하나 커버리지 16*16픽셀
+    num_res_blocks: 2
+    attn_resolutions: [ 8 ]  # 셀프 어텐션이 일어나는 해상도(conv stack 안에서) 
+    dropout: 0.00
+    enc_no_mid_attn: true
+  checkpointing: true
+ 
+
+optimizer:
+  # Original VQ-GAN: lr = 4.5e-06 * (batch size) -> 5.4e-5 for batch size 12
+  type: adam
+  init_lr: 4.0e-5
+  weight_decay: 0.0
+  betas: [0.5, 0.9]
+  warmup:
+    epoch: 0.5  # 5% of total epochs
+    multiplier: 1
+    buffer_epoch: 0
+    min_lr: 4.0e-5
+    mode: fix
+
+
+experiment:
+  batch_size: {'70_130': 192, '130_260': 96 , '260_360': 24, '360_390': 12} # Dynamic batch size for each bucket; batch size are low because of lack of data for the POC now
+  val_batch_size: {'70_130': 192, '130_260': 96 , '260_360': 24, '360_390': 12}
+  epochs: 100000
+  save_ckpt_freq: 1
+  test_freq: 1
+
+gan:
+  disc:
+    arch:
+      in_channels: 3
+      num_layers: 2
+      use_actnorm: False
+      ndf: 64
+      spectral_norm: False
+
+  loss:
+    disc_loss: hinge
+    gen_loss: vanilla
+    disc_weight: 0.75
+    perceptual_loss: zeus_lpips
+    perceptual_weight: 1.0
+    disc_start: 10000000

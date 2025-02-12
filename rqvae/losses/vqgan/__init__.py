@@ -36,8 +36,18 @@ def create_vqgan_loss(loss_config):
     else:
         raise ValueError(f"Unknown GAN loss '{gen_loss_type}'.")
 
-    perceptual_loss = LPIPS()
+    if loss_config.perceptual_loss is not None:
+        perceptual_loss_type = loss_config.perceptual_loss
+    else:
+        perceptual_loss_type = 'lpips'
 
+    if perceptual_loss_type == 'lpips' :
+        perceptual_loss = LPIPS()
+    elif perceptual_loss_type == 'zeus_lpips':
+        perceptual_loss = ZeusLPIPS()
+    else:
+        raise ValueError(f"Unknown perceptual loss '{perceptual_loss_type}'.")
+    
     return disc_loss, gen_loss, perceptual_loss
 
 
