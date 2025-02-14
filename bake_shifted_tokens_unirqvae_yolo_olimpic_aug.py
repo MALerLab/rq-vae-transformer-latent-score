@@ -166,6 +166,7 @@ if __name__ == "__main__":
             # Log error with timestamp
             with open(log_path, "a") as f:
               f.write(f"Error processing {image_path}:\n{str(e)}\n")
+            raise e
             
         x_y_shifted_tokens.append(out.squeeze(0))
       x_y_shifted_tokens = torch.stack(x_y_shifted_tokens)
