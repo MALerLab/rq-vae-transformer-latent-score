@@ -1,13 +1,5 @@
 ## Requirements
-We have tested our codes on the environment below  
-- `Python 3.7.10` / `Pytorch 1.9.0` / `torchvision 0.10.0` / `CUDA 11.1` / `Ubuntu 18.04`  .  
-
-Please run the following command to install the necessary dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### Please check Pipfile for more details (for MALerLab settings)
+All dependencies are managed by pipenv. please check Pipfile and Pipfile.lock
 
 # Image Tokenization Process(UNIRQVAE2)
 
