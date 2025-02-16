@@ -54,12 +54,13 @@ if __name__ == "__main__":
     print("Encoding : ", image_path)
     image = PIL.Image.open(image_path).convert("L")
 
-    # Filter
+    # Filter (If not needed, remove this part)
     width, height = image.size
     if height < 70 or height > 390 or height > width:
       print(f"Skipping {image_path} due to invalid dimensions: {width}x{height}")
       continue
     
+    # Brightness Thresholding (RQVAE model is also trained with this brightness thresholding setting; so if you want to use the same setting, keep this part. Keep in mind that YTSV dataset includes many dark scanned score images.)
     if brightness_threshold:
       # Convert PIL image to numpy array
       img_array = np.array(image)

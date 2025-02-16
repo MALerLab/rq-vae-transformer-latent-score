@@ -7,11 +7,6 @@ This script tokenizes grayscale images using a trained RQVAE model, applying var
 Refer to `tokenize_unirqvae.py` for more details.
 
 ## Prerequisites
-
-- PyTorch
-- torchvision
-- PIL
-- numpy
 - RQVAE model checkpoint
     - download from [here](https://drive.google.com/file/d/19Y7m4kx4ZmoCsQGNcMacnRowKXMj91mp/view?usp=drive_link)
     - and extract the checkpoint file to `logs/unirqvae2_f16_c1024_k4/`
@@ -25,7 +20,7 @@ config_path = Path("logs")/model_name/"config.yaml"
 ckpt_path = Path("logs")/model_name/"checkpoint.pt"  # .pt file
 ```
 
-### 2. Image Loading and Filtering
+### 2. Image Loading and Filtering (If not needed, remove this part)
 - Loads grayscale images and applies dimension filtering
 - Skips images that are:
   - Less than 70 pixels in height
@@ -36,6 +31,7 @@ image = PIL.Image.open(image_path).convert("L")
 ```
 
 ### 3. Brightness Thresholding
+RQVAE model is also trained with this brightness thresholding setting; so if you want to use the same setting, keep this part. Keep in mind that YTSV dataset includes many dark scanned score images.
 Applies an adaptive brightness threshold based on the median value:
 ```python
 img_array = np.array(image)
@@ -61,6 +57,18 @@ w_padding = (16 - image.shape[-1] % 16) % 16
 image = torch.nn.functional.pad(
     image, 
     (4+8, 3+w_padding+8, 2+8, 1+h_padding+8), 
+    mode='constant', 
+    value=1.0
+)
+```
+
+If you are not going to use the token shifting, the code below is enough.
+```python
+h_padding = (16 - image.shape[-2] % 16) % 16
+w_padding = (16 - image.shape[-1] % 16) % 16
+image = torch.nn.functional.pad(
+    image, 
+    (0, w_padding, 0, h_padding), 
     mode='constant', 
     value=1.0
 )
