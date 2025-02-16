@@ -17,7 +17,7 @@ from rqvae.models import create_model
 
 if __name__ == "__main__":
   brightness_threshold = True
-  model_name = "unirqvae_f16_c1024_k4"
+  model_name = "unirqvae2_f16_c1024_k4"
   config_path = list((Path("logs")/ model_name).rglob("config.yaml"))[0]
   config = OmegaConf.load(config_path)
   config = load_config(config_path)
@@ -31,14 +31,14 @@ if __name__ == "__main__":
   
   torch.set_grad_enabled(False)
   
-  image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo_3/").rglob("*/images/crop_resized/*.png"))
-  # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
-  # filtered_pathlist = []
-  # for p in image_path_list:
-  #   # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
-  #   if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
-  #     filtered_pathlist.append(p)
-  # image_path_list = filtered_pathlist
+  # image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo_3/").rglob("*/images/crop_resized/*.png"))
+  image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
+  filtered_pathlist = []
+  for p in image_path_list:
+    # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
+    if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
+      filtered_pathlist.append(p)
+  image_path_list = filtered_pathlist
   
   totensor = transforms.ToTensor()
   normalize = transforms.Normalize([0.5], [0.5])
@@ -76,13 +76,26 @@ if __name__ == "__main__":
       
       # Convert back to PIL Image
       image = PIL.Image.fromarray(img_array)
+  
     image = totensor(image)
+
+    # Pad image to be divisible by 16
+    # Calculate padding needed to make height and width divisible by 16
+    h_padding = (16 - image.shape[-2] % 16) % 16
+    w_padding = (16 - image.shape[-1] % 16) % 16
+    
+    # Pad right and bottom with white (1.0 since image will be normalized later) 
+    # +7(4,3) for 8 pixel x_shifted tokens, +3(2,1) for 8 pixel y_shifted tokens
+    # +8 for additional padding for 4x8 shifted tokens
+    image = torch.nn.functional.pad(image, (4+8, 3+w_padding+8, 2+8, 1+h_padding+8), mode='constant', value=1.0)
+
+    # Normalize image
     image = normalize(image)
     
     # pixel shifting to get 4*8 shifted tokens for a single image
     x_y_shifted_tokens = []
     for j in range(4):
-      y_shifted_img = torch.nn.functional.pad(image[:, j:image.shape[-2]-4+j], (0, 0, 4-j, j), mode='replicate')
+      y_shifted_img = image[:, j:image.shape[-2]-3+j]
       x_shifted_imgs = []
       for i in range(8):
         x_shifted_imgs.append(y_shifted_img[...,i:y_shifted_img.shape[-1]-7+i])
@@ -90,7 +103,7 @@ if __name__ == "__main__":
       
       try:
         out = model.get_codes(x_shifted_imgs.cuda())
-      except RuntimeError as e:
+      except RuntimeError as e: # OOM case
         if "out of memory" in str(e):
           # Split batch in half and process separately
           batch_size = len(x_shifted_imgs)
