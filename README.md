@@ -1,18 +1,3 @@
-# Autoregressive Image Generation using Residual Quantization (CVPR 2022)
-The official implementation of ["Autoregressive Image Generation using Residual Quantization"](https://arxiv.org/abs/2203.01941)  
-Doyup Lee*, Chiheon Kim*, Saehoon Kim, Minsu Cho, Wook-Shin Han (\* Equal contribution)  
-**CVPR 2022**
-
-<center><img src="assets/figures/teaser.png" height="256"></center>
-
-The examples of generated images by RQ-Transformer using class conditions and text conditions.   
-Note that the text conditions of the examples are not used in training time.    
-
-**TL;DR** For autoregressive (AR) modeling of high-resolution images, we propose the two-stage framework, which consists of RQ-VAE and RQ-Transformer. Our framework can precisely approximate a feature map of an image and represent an image as a stack of discrete codes to effectively generate high-quality images.
-
-<center><img src="assets/figures/overview_figure.png"></center>  
-
-
 ## Requirements
 We have tested our codes on the environment below  
 - `Python 3.7.10` / `Pytorch 1.9.0` / `torchvision 0.10.0` / `CUDA 11.1` / `Ubuntu 18.04`  .  
@@ -22,7 +7,7 @@ Please run the following command to install the necessary dependencies
 pip install -r requirements.txt
 ```
 
-## Please check Pipfile for more details (for MALerLab settings)
+### Please check Pipfile for more details (for MALerLab settings)
 
 # Image Tokenization Process(UNIRQVAE2)
 
