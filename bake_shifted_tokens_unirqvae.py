@@ -31,14 +31,14 @@ if __name__ == "__main__":
   
   torch.set_grad_enabled(False)
   
-  # image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo_3/").rglob("*/images/crop_resized/*.png"))
-  image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
-  filtered_pathlist = []
-  for p in image_path_list:
-    # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
-    if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
-      filtered_pathlist.append(p)
-  image_path_list = filtered_pathlist
+  image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo/").rglob("*/images/crop_resized/*.png"))
+  # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
+  # filtered_pathlist = []
+  # for p in image_path_list:
+  #   # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
+  #   if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
+  #     filtered_pathlist.append(p)
+  # image_path_list = filtered_pathlist
   
   totensor = transforms.ToTensor()
   normalize = transforms.Normalize([0.5], [0.5])
