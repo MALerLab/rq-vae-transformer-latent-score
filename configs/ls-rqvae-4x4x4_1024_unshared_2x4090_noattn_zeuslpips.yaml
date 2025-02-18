@@ -4,7 +4,7 @@ dataset:
   type: LSD_360anchored_gray_yolo
   transforms:
     type: lsd_randomcrop_64 # Dummy. Refer to rqvae.img_datasets.MultiHeightScoreDataset
-
+  white_threshold: True
 arch:
   type: rq-vae
   code_hier: 1

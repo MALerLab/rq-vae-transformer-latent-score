@@ -21,6 +21,8 @@ from torchvision.datasets import ImageNet
 from tqdm import tqdm
 from omegaconf import DictConfig
 import math
+import numpy as np
+import PIL
 
 from .lsun import LSUNClass
 from .ffhq import ImageFolder, FFHQ
@@ -113,9 +115,11 @@ class ScoreDataset(ImageFolder):
         super().__init__(root, train_list_file, val_list_file, split, **kwargs)
 
 class MultiHeightScoreDataset(ScoreDataset):
-    def __init__(self, root, split='train', **kwargs):
+    def __init__(self, root, split='train', threshold=False, **kwargs):
         super().__init__(root, split, **kwargs)
         
+        self.threshold = threshold
+
         heights = []
         valid_indices = []
         for i, sample in enumerate(tqdm(self.samples, desc='Loading image heights')):
@@ -174,6 +178,14 @@ class MultiHeightScoreDataset(ScoreDataset):
 
     def __getitem__(self, index, with_transform=True):
         sample, _ = super().__getitem__(index, with_transform=False)
+
+        if self.threshold:
+           sample = transforms.Grayscale(num_output_channels=1)(sample)
+           sample = np.array(sample)
+           median = np.median(sample)
+           sample[sample > (median-20)] = 255
+           sample = PIL.Image.fromarray(sample)
+
         height = self.heights[index]
         
         if with_transform:
@@ -240,8 +252,12 @@ def create_dataset(config, is_eval=False, logger=None):
     elif config.dataset.type in ['LSD_360anchored_gray', 'LSD_360anchored_gray_debug', 'LSD_360anchored_gray_yolo']:
         root = root if root else f'data/{config.dataset.type}'
         assert isinstance(config.experiment.batch_size, DictConfig)
-        dataset_trn = MultiHeightScoreDataset(root, split='train', transform=transforms_trn)
-        dataset_val = MultiHeightScoreDataset(root, split='val', transform=transforms_val)
+        if config.dataset.white_threshold:
+           white_threshold = config.dataset.white_threshold
+        else:
+           white_threshold = False
+        dataset_trn = MultiHeightScoreDataset(root, split='train', threshold=white_threshold, transform=transforms_trn)
+        dataset_val = MultiHeightScoreDataset(root, split='val', threshold=white_threshold, transform=transforms_val)
     else:
         raise ValueError('%s not supported...' % config.dataset.type)
 

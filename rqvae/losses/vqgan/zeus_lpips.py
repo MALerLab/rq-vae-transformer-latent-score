@@ -29,7 +29,7 @@ class ZeusLPIPS(nn.Module):
       # Calculate MSE loss
       loss = torch.nn.MSELoss()(out0_norm, out1_norm)
 
-      loss = loss * loss_weight * 2 # 2 to make the scale similar to LPIPS
+      loss = loss * loss_weight * 4 # 4 to make the scale similar to LPIPS
       total_loss += loss
     
     if reduction == 'none':
