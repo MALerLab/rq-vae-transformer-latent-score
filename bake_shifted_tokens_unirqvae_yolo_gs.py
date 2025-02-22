@@ -8,6 +8,7 @@ from omegaconf import OmegaConf
 
 import torchvision.transforms as transforms
 import numpy as np
+import json
 
 from rqvae.models.rqvae.rqvae import RQVAE
 from rqvae.utils.config import load_config, augment_arch_defaults
@@ -18,7 +19,7 @@ from rqvae.models import create_model
 if __name__ == "__main__":
   brightness_threshold = False
 
-  model_name = "unirqvae_f16_c1024_k4"
+  model_name = "unirqvae3_f16_c1024_k4"
   config_path = list((Path("logs")/ model_name).rglob("config.yaml"))[0]
   config = OmegaConf.load(config_path)
   config = load_config(config_path)
@@ -32,15 +33,44 @@ if __name__ == "__main__":
   
   torch.set_grad_enabled(False)
   
-  image_path_list = list(Path("/home/sake/userdata/olimpic_dataset_yolo/").rglob("*.jpg"))
-  # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
-  # filtered_pathlist = []
-  # for p in image_path_list:
-  #   # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
-  #   if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
-  #     filtered_pathlist.append(p)
-  # image_path_list = filtered_pathlist
+  image_path_list = list(Path("/home/sake/userdata/olimpic_dataset_yolo/grandstaff-lmx").rglob("*.jpg"))
   
+  print("Loading dataset...")
+  print("Length of image path list: ", len(image_path_list))
+
+  with open("/home/sake/userdata/sake/latent-score-amt/dataset_pair_paths/grandstaff-lmx.json", "r") as f:
+    dataset = json.load(f)
+
+  # Get list of paths from valid set, excluding distorted ones
+  valid_paths = []
+  for item in dataset["valid"]:
+    # Get path up to sonata folder (e.g. "beethoven/piano-sonatas/sonata01-2")
+    base_path = "/".join(item["pt"].split("/")[:3])
+    # Get filename without extension
+    filename = item["pt"].split("/")[-1].replace(".pt", "")
+    valid_paths.append((base_path, filename))
+
+  test_paths = []
+  for item in dataset["test"]:
+    base_path = "/".join(item["pt"].split("/")[:3])
+    filename = item["pt"].split("/")[-1].replace(".pt", "")
+    test_paths.append((base_path, filename))
+  
+  # Filter image paths that match with train set paths
+  filtered_image_paths = []
+  for image_path in image_path_list:
+    image_path = Path(image_path)
+    # Get corresponding parts from image path
+    img_base = "/".join(image_path.parts[-4:-1])  # beethoven/piano-sonatas/sonata01-2
+    img_filename = image_path.stem  # maj2_down_m-0-5_yolo_resized
+    
+    if (img_base, img_filename) in valid_paths + test_paths:
+      filtered_image_paths.append(image_path)
+
+  image_path_list = filtered_image_paths
+
+  print("Filtered image paths: ", len(image_path_list))
+
   totensor = transforms.ToTensor()
   normalize = transforms.Normalize([0.5], [0.5])
 
@@ -53,9 +83,9 @@ if __name__ == "__main__":
     save_path = (image_path.parent / "image_tokens" / (model_name) / "yolo_shifted" / image_path.stem).with_suffix(".pt")
     save_path.parent.mkdir(parents=True, exist_ok=True)
     
-    if save_path.exists():
-      print(f"Skipping {image_path} because {save_path} already exists")
-      continue
+    # if save_path.exists():
+    #   print(f"Skipping {image_path} because {save_path} already exists")
+    #   continue
     
     print("Encoding : ", image_path)
     image = PIL.Image.open(image_path).convert("L")
@@ -82,12 +112,23 @@ if __name__ == "__main__":
       image = PIL.Image.fromarray(img_array)
 
     image = totensor(image)
+
+    # Pad image to be divisible by 16
+    # Calculate padding needed to make height and width divisible by 16
+    h_padding = (16 - image.shape[-2] % 16) % 16
+    w_padding = (16 - image.shape[-1] % 16) % 16
+    
+    # Pad right and bottom with white (1.0 since image will be normalized later) 
+    # +7(4,3) for 8 pixel x_shifted tokens, +3(2,1) for 8 pixel y_shifted tokens
+    # +8 for additional padding for 4x8 shifted tokens
+    image = torch.nn.functional.pad(image, (4+8, 3+w_padding+8, 2+8, 1+h_padding+8), mode='constant', value=1.0)
+
     image = normalize(image)
     
     # pixel shifting to get 4*8 shifted tokens for a single image
     x_y_shifted_tokens = []
     for j in range(4):
-      y_shifted_img = torch.nn.functional.pad(image[:, j:image.shape[-2]-4+j], (0, 0, 4-j, j), mode='replicate')
+      y_shifted_img = image[:, j:image.shape[-2]-3+j]
       x_shifted_imgs = []
       for i in range(8):
         x_shifted_imgs.append(y_shifted_img[...,i:y_shifted_img.shape[-1]-7+i])

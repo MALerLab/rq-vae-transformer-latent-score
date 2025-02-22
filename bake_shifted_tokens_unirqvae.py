@@ -17,7 +17,7 @@ from rqvae.models import create_model
 
 if __name__ == "__main__":
   brightness_threshold = True
-  model_name = "unirqvae2_f16_c1024_k4"
+  model_name = "unirqvae3_f16_c1024_k4"
   config_path = list((Path("logs")/ model_name).rglob("config.yaml"))[0]
   config = OmegaConf.load(config_path)
   config = load_config(config_path)
@@ -35,8 +35,8 @@ if __name__ == "__main__":
   # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
   # filtered_pathlist = []
   # for p in image_path_list:
-  #   # if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2"]:
-  #   if p.parents[4].stem in ["2-0", "3-0", "3-2", "4-0", "5-0"]:
+  #   if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2", "2-0", "3-0", "3-2", "4-0", "5-0"]:
+  #   # if p.parents[4].stem in ["0-2"]:
   #     filtered_pathlist.append(p)
   # image_path_list = filtered_pathlist
   

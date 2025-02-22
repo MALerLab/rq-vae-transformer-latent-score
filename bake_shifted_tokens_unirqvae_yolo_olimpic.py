@@ -18,7 +18,7 @@ from rqvae.models import create_model
 if __name__ == "__main__":
   brightness_threshold = False
 
-  model_name = "unirqvae2_f16_c1024_k4"
+  model_name = "unirqvae3_f16_c1024_k4"
   config_path = list((Path("logs")/ model_name).rglob("config.yaml"))[0]
   config = OmegaConf.load(config_path)
   config = load_config(config_path)
