@@ -31,14 +31,14 @@ if __name__ == "__main__":
   
   torch.set_grad_enabled(False)
   
-  image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo/").rglob("*/images/crop_resized/*.png"))
-  # image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
-  # filtered_pathlist = []
-  # for p in image_path_list:
-  #   if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2", "2-0", "3-0", "3-2", "4-0", "5-0"]:
-  #   # if p.parents[4].stem in ["0-2"]:
-  #     filtered_pathlist.append(p)
-  # image_path_list = filtered_pathlist
+  # image_path_list = list(Path("/home/sake/userdata/yt_crawl_updated_0119_yolo/").rglob("*/images/crop_resized/*.png"))
+  image_path_list = list(Path("/home/sake/userdata/latent_score_dataset_yolo_resize/").rglob("*/*/*/images/crop_resized/*.png"))
+  filtered_pathlist = []
+  for p in image_path_list:
+    if p.parents[4].stem in ["0-3", "0-4", "0-6", "1-0", "1-2", "1-3", "2-2", "4-1", "4-2", "8-0", "8-2", "2-0", "3-0", "3-2", "4-0", "5-0"]:
+    # if p.parents[4].stem in ["0-2"]:
+      filtered_pathlist.append(p)
+  image_path_list = filtered_pathlist
   
   totensor = transforms.ToTensor()
   normalize = transforms.Normalize([0.5], [0.5])
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     save_path = (image_path.parent.parent.parent / "image_tokens" / (model_name) / "yolo_shifted" / image_path.stem).with_suffix(".pt")
     save_path.parent.mkdir(parents=True, exist_ok=True)
     
-    if save_path.exists():
-      continue
+    # if save_path.exists():
+    #   continue
     
     print("Encoding : ", image_path)
     image = PIL.Image.open(image_path).convert("L")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # Pad right and bottom with white (1.0 since image will be normalized later) 
     # +7(4,3) for 8 pixel x_shifted tokens, +3(2,1) for 8 pixel y_shifted tokens
     # +8 for additional padding for 4x8 shifted tokens
-    image = torch.nn.functional.pad(image, (4+8, 3+w_padding+8, 2+8, 1+h_padding+8), mode='constant', value=1.0)
+    image = torch.nn.functional.pad(image, (4, 3+w_padding, 2, 1+h_padding), mode='constant', value=1.0)
 
     # Normalize image
     image = normalize(image)

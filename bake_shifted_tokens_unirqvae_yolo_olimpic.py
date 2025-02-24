@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # Pad right and bottom with white (1.0 since image will be normalized later) 
     # +7(4,3) for 8 pixel x_shifted tokens, +3(2,1) for 8 pixel y_shifted tokens
     # +8 for additional padding for 4x8 shifted tokens
-    image = torch.nn.functional.pad(image, (4+8, 3+w_padding+8, 2+8, 1+h_padding+8), mode='constant', value=1.0)
+    image = torch.nn.functional.pad(image, (4, 3+w_padding, 2, 1+h_padding), mode='constant', value=1.0)
 
     image = normalize(image)
     
